@@ -145,13 +145,16 @@ End Sub
 Private Sub Init(ByVal cType As CallType)
     If m_callType <> ctNone Then GoTo AfterInit
     '
-    Dim dataInterfacePtr As LongPtr:  dataInterfacePtr = VarPtr(DataObject) + PTR_SIZE
-    Dim dataVirtTablePtr As LongPtr:  dataVirtTablePtr = MemLongPtr(dataInterfacePtr)
-    Dim dataReleaseAddr As LongPtr:   dataReleaseAddr = dataVirtTablePtr + PTR_SIZE * 2
-    Dim dataClearAddr As LongPtr:     dataClearAddr = dataVirtTablePtr + PTR_SIZE * 7
+    Dim dataInterfacePtr As LongPtr: dataInterfacePtr = VarPtr(DataObject) + PTR_SIZE
+    Dim dataVirtTablePtr As LongPtr: dataVirtTablePtr = MemLongPtr(dataInterfacePtr)
+    Dim dataAddRefAddr As LongPtr:   dataAddRefAddr = dataVirtTablePtr + PTR_SIZE * 1
+    Dim dataReleaseAddr As LongPtr:  dataReleaseAddr = dataVirtTablePtr + PTR_SIZE * 2
+    Dim dataClearAddr As LongPtr:    dataClearAddr = dataVirtTablePtr + PTR_SIZE * 7
+    Dim dataGetClipAddr As LongPtr:  dataGetClipAddr = dataVirtTablePtr + PTR_SIZE * 12
     '
-    MemLongPtr(VarPtr(m_data)) = dataInterfacePtr 'Unmanaged reference
-    MemLongPtr(dataReleaseAddr) = MemLongPtr(dataClearAddr)
+    MemLongPtr(VarPtr(m_data)) = dataInterfacePtr            'Unmanaged reference
+    MemLongPtr(dataReleaseAddr) = MemLongPtr(dataClearAddr)  'Main reroute
+    MemLongPtr(dataAddRefAddr) = MemLongPtr(dataGetClipAddr) 'See GetFromClipboard
 AfterInit:
     m_callType = cType
 End Sub
@@ -196,9 +199,15 @@ Private Sub RunMacro(Optional ByVal Missing As Variant)
         , m_args(25), m_args(26), m_args(27), m_args(28), m_args(29)
 End Sub
 
+'*******************************************************************************
+'Called instead of AddRef when an external cast to DataObject is executed
+'Avoids incrementing the reference count thus making sure there are no leaks
+'*******************************************************************************
+Private Sub DataObject_GetFromClipboard()
+End Sub
+
 'The following methods are required by the 2 implemented interfaces but are not used
 Private Function DataObject_GetFormat(ByVal Format As Variant) As Boolean: End Function
-Private Sub DataObject_GetFromClipboard(): End Sub
 Private Function DataObject_GetText(Optional ByVal Format As Variant) As String: End Function
 Private Sub DataObject_PutInClipboard(): End Sub
 Private Sub DataObject_SetText(ByVal Text As String, Optional ByVal Format As Variant): End Sub
