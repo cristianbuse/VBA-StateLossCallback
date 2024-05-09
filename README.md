@@ -5,6 +5,12 @@ A class that allows safe callbacks when state is lost.
 - **No** memory leaks, **no** crashes
 - Compatible with Windows and Mac on both x32 and x64
 
+## Installation
+Just import the following code modules in your VBA Project:
+* [**StateLossCallback.cls**](https://github.com/cristianbuse/VBA-StateLossCallback/blob/master/src/StateLossCallback.cls)
+
+You will need a reference to ```MsForms``` (Microsoft Forms 2.0 Object Library). Simply add a form to your project and the reference will be added automatically - you can then remove the form.
+
 ## Implementation
 An extra interface is used to achieve safety. The ```IUnknown::Release``` method in the extra virtual table is replaced with one of the methods of the extra interface (```Clear```) which then performs the call on the actual method implementation. This 'wrapping' is what makes the call safe even if the IDE Stop button is pressed while the callback is performed. There is a single instance of the extra interface (see ```m_data``` class member) and it is unmanaged i.e. no actual reference is added or removed from the object reference count.
 
@@ -16,10 +22,6 @@ Design decisions:
   - an AddressOf pointer passed to ```InitByAddress```. One text callback argument allowed
 - for the callback by address to work, a second extra interface is used (```stdole.IFontEventsDisp```) but this time the instance of this interface is actually managed and the ```FontChanged``` method is used as the safe wrapper to call the desired callback method
 - the ```AddRef``` method of the ```DataObject``` interface is rerouted to ```GetFromClipboard``` and this guards against intentional casting to ```DataObject``` e.g. ```Dim dObj As MSForms.DataObject: Set dObj = AnInstanceOfStateLossCallback``` would increase the reference count unnecessarily (if not for the ```GetFromClipboard``` reroute) without decrementing it back (because ```Clear``` has been rerouted)
-
-## Installation
-Just import the following code modules in your VBA Project:
-* [**StateLossCallback.cls**](https://github.com/cristianbuse/VBA-StateLossCallback/blob/master/src/StateLossCallback.cls)
 
 ## Demo
 Import the following code module from the [demo folder](https://github.com/cristianbuse/VBA-StateLossCallback/tree/master/src/Demo) in your VBA Project:
