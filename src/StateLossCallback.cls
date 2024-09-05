@@ -75,8 +75,10 @@ Option Explicit
 #End If
 #If Win64 Then
     Const PTR_SIZE As Long = 8
+    Const NULL_PTR As LongLong = 0^
 #Else
     Const PTR_SIZE As Long = 4
+    Const NULL_PTR As Long = 0&
 #End If
 #End If
 
@@ -165,6 +167,14 @@ End Sub
 Public Function Self() As StateLossCallback
     Set Self = Me
 End Function
+
+'*******************************************************************************
+'Needed to cancel the callback call e.g. can be placed in a BeforeClose event
+'*******************************************************************************
+Public Sub Cancel()
+    If m_data Is Nothing Then Exit Sub
+    MemLongPtr(VarPtr(m_data)) = NULL_PTR
+End Sub
 
 '*******************************************************************************
 'Called when the m_data instance is being cleared by VB

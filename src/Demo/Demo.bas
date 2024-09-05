@@ -19,6 +19,7 @@ Sub Demo1()
         End If
     Next i
     On Error GoTo 0
+    coll(1).Cancel
 End Sub
 Sub Demo2()
     Static stateTracker As StateLossCallback
